@@ -1,12 +1,21 @@
 import { useState } from "react";
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 
-import { selectCartTotal } from "../../store/cart/cart.selector";
+import {
+  selectCartCount,
+  selectCartItems,
+  selectCartTotal,
+} from "../../store/cart/cart.selector";
 import { selectCurrentUser } from "../../store/user/user.selector";
 import { BUTTON_TYPE_CLASSES } from "../button/button.component";
-import { FormContainer, PaymentButton, PaymentFormContainer } from "./payment-form-styles";
-
+import { useNavigate } from "react-router-dom";
+import {
+  FormContainer,
+  PaymentButton,
+  PaymentFormContainer,
+} from "./payment-form-styles";
+import { setOrders } from "../../store/orders/order.action";
 
 const PaymentForm = () => {
   const stripe = useStripe();
@@ -14,6 +23,17 @@ const PaymentForm = () => {
   const amount = useSelector(selectCartTotal);
   const currentUser = useSelector(selectCurrentUser);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const orderItems = useSelector(selectCartItems);
+  const orderTotal = useSelector(selectCartTotal);
+  const orderCount = useSelector(selectCartCount);
+
+  const orderPlaced = () => {
+    dispatch(setOrders(orderItems, orderTotal, orderCount));
+    alert("your order placed see your order details");
+    navigate("/orders");
+  };
 
   const paymentHandler = async (e) => {
     e.preventDefault();
@@ -53,6 +73,7 @@ const PaymentForm = () => {
     } else {
       if (paymentResult.paymentIntent.status === "succeeded") {
         alert("Payment Successful");
+        orderPlaced();
       }
     }
   };
